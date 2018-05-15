@@ -20,7 +20,7 @@ class WeatherViewController: UIViewController, CLLocationManagerDelegate {
 
     //TODO: Declare instance variables here
     let locationManager = CLLocationManager()
-
+    let weatherDataModel = WeatherDataModel()
     
     //Pre-linked IBOutlets
     @IBOutlet weak var weatherIcon: UIImageView!
@@ -50,6 +50,9 @@ class WeatherViewController: UIViewController, CLLocationManagerDelegate {
             response in
             if (response.result.isSuccess) {
                 print("Success! Got the weather data")
+                
+                let weatherJSON = JSON(response.result.value!)
+                self.updateWeatherData(json: weatherJSON)
             }
             else {
                 print("Error \(response.result.error!)")
@@ -59,16 +62,24 @@ class WeatherViewController: UIViewController, CLLocationManagerDelegate {
     }
 
     
-    
-    
-    
-    
     //MARK: - JSON Parsing
     /***************************************************************/
    
     
     //Write the updateWeatherData method here:
-    
+    func updateWeatherData(json: JSON) {
+        if let temp = json["main"]["temp"].double {
+            weatherDataModel.temperature = Int(temp - 273.15)
+            weatherDataModel.city = json["name"].stringValue
+            weatherDataModel.condition = json["weather"][0]["id"].intValue
+            weatherDataModel.weatherIconName = weatherDataModel.updateWeatherIcon(condition: weatherDataModel.condition)
+            
+            updateWithWeatherData()
+        }
+        else {
+            cityLabel.text = "Weather unavailable"
+        }
+    }
 
     
     
@@ -79,6 +90,12 @@ class WeatherViewController: UIViewController, CLLocationManagerDelegate {
     
     //Write the updateUIWithWeatherData method here:
     
+    func updateWithWeatherData() {
+        print(weatherDataModel)
+        cityLabel.text = weatherDataModel.city
+        temperatureLabel.text = String(weatherDataModel.temperature)
+        weatherIcon.image = UIImage(named: weatherDataModel.weatherIconName)
+    }
     
     
     
@@ -94,6 +111,7 @@ class WeatherViewController: UIViewController, CLLocationManagerDelegate {
         
         if (location.horizontalAccuracy > 0) {
             locationManager.stopUpdatingLocation()
+            locationManager.delegate = nil
             
             let latitude = String(location.coordinate.latitude)
             let longitude = String(location.coordinate.longitude)
