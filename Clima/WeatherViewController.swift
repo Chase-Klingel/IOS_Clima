@@ -69,7 +69,7 @@ class WeatherViewController: UIViewController, CLLocationManagerDelegate, Change
     //Write the updateWeatherData method here:
     func updateWeatherData(json: JSON) {
         if let temp = json["main"]["temp"].double {
-            weatherDataModel.temperature = Int(temp - 273.15)
+            weatherDataModel.temperature =  Int(((9/5) * (temp - 273)) + 32)
             weatherDataModel.city = json["name"].stringValue
             weatherDataModel.condition = json["weather"][0]["id"].intValue
             weatherDataModel.weatherIconName = weatherDataModel.updateWeatherIcon(condition: weatherDataModel.condition)
@@ -93,7 +93,7 @@ class WeatherViewController: UIViewController, CLLocationManagerDelegate, Change
     func updateWithWeatherData() {
         print(weatherDataModel)
         cityLabel.text = weatherDataModel.city
-        temperatureLabel.text = String(weatherDataModel.temperature)
+        temperatureLabel.text = "\(weatherDataModel.temperature)°"
         weatherIcon.image = UIImage(named: weatherDataModel.weatherIconName)
     }
     
@@ -134,11 +134,12 @@ class WeatherViewController: UIViewController, CLLocationManagerDelegate, Change
     
     //Write the userEnteredANewCityName Delegate method here:
     func userEnteredANewCityName(city: String) {
-        print("city \(city)")
+        let params : [String : String] = ["q" : city, "appid" : APP_ID]
+        getWeatherData(url: WEATHER_URL, parameters: params)
     }
 
     
-    //Write the PrepareForSegue Method here
+    // Triggers when we segue from WeatherViewController to ChangeCityViewController
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if (segue.identifier == "ChangeCityName") {
             let destinationVC = segue.destination as! ChangeCityViewController
